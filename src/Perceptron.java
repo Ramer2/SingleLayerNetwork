@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 public class Perceptron {
     double[] weights;
     double bias;
@@ -11,22 +13,23 @@ public class Perceptron {
         this.lang = lang;
     }
 
-    public double predict(Vector testVector) {
+    public int predict(Vector testVector) {
         double product = 0;
         for (int i = 0; i < testVector.components.length; i++) {
             product += testVector.components[i] * weights[i];
         }
-        return product - bias;
+
+        if (product - bias >= 0) return 1;
+        else return 0;
     }
 
     public void updateWeights(Vector trainVector, double label) {
         double prediction = predict(trainVector);
-        double error = label - prediction;
 
         for (int j = 0; j < weights.length; j++) {
-            weights[j] += learningRate * error * trainVector.components[j];
+            weights[j] += learningRate * (label - prediction) * trainVector.components[j];
         }
-        bias -= learningRate * error;
+        bias -= learningRate * (label - prediction);
     }
 
     public void learn(Vector vector) {
@@ -34,67 +37,13 @@ public class Perceptron {
         updateWeights(vector, language);
     }
 
-    public String testTestingSet(TestingSet testingSet) {
-        int correct = 0;
-        int total = testingSet.testingVectors.size();
-        for (Vector vector : testingSet.getTestingVectors()) {
-            int vectorClass = vector.lang.equals("Iris-versicolor") ? 0 : 1;
-            if (predict(vector) == vectorClass) correct++;
-        }
-
-        double accuracy = ((double) correct / total) * 100;
-        return String.format("Result accuracy: %.2f%%", accuracy);
+    @Override
+    public String toString() {
+        return "Perceptron{" +
+                "weights=" + Arrays.toString(weights) +
+                ", bias=" + bias +
+                ", learningRate=" + learningRate +
+                ", lang='" + lang + '\'' +
+                '}';
     }
-
-//    public static void main(String[] args) {
-//        Scanner sc = new Scanner(System.in);
-//        System.out.print("Enter the number of test epochs for training: ");
-//        int epochs = sc.nextInt();
-//
-//        String trainingFileName = "./src/main/java/perceptron.data";
-//        String testingFileName = "./src/main/java/perceptron.test.data";
-//
-//        TrainingSet trainingSet = new TrainingSet(trainingFileName);
-//        TestingSet testingSet = new TestingSet(testingFileName);
-//        weights = new double[trainingSet.trainingVectors.getFirst().components.length];
-//        bias = 0;
-//        learningRate = 0;
-//
-//        // random bias and initial weights
-//        bias = Math.random();
-//        for (int i = 0; i < weights.length; i++) {
-//            weights[i] = Math.random();
-//        }
-//
-//        System.out.print("Learning rate: ");
-//        learningRate = sc.nextDouble();
-//
-//        learn(trainingSet, epochs);
-//
-//        System.out.println("Learned " + epochs + " epochs with " + weights.length + " weights");
-//        System.out.println(Arrays.toString(weights));
-//
-//        while (true) {
-//            System.out.print("Do you want to classify a single vector? (y/n): ");
-//            String answer = sc.next();
-//
-//            if (answer.equals("y")) {
-//                System.out.print("Input this vector like this (x; y; z;..): ");
-//                String[] parts = sc.next().split(";");
-//                double[] components = new double[parts.length];
-//                for (int i = 0; i < parts.length; i++) components[i] = Double.parseDouble(parts[i]);
-//                Vector vector = new Vector(components, "");
-//
-//                if (predict(vector) == 0) System.out.println("The vector was classified as Iris-versicolor.");
-//                else System.out.println("The vector was classified as Iris-virginica.");
-//            }
-//
-//            System.out.print("Do you want to go over the whole testing set to find out the accuracy? (y/n): ");
-//            answer = sc.next();
-//            if (answer.equals("y")) {
-//                System.out.println(testTestingSet(testingSet));
-//            }
-//        }
-//
-//    }
 }

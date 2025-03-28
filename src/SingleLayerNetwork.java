@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 public class SingleLayerNetwork {
 
@@ -23,39 +21,60 @@ public class SingleLayerNetwork {
 
     public void train(TrainingSet trainingSet, int epochs) {
         for (int i = 0; i< epochs; i++) {
-            Collections.shuffle(trainingSet.trainingVectors);
             for (Vector vector : trainingSet.trainingVectors) {
                 for (Perceptron perceptron : perceptrons) perceptron.learn(vector);
             }
         }
     }
 
+    public String predict(Vector vector) {
+        int[] results = new int[perceptrons.size()];
+        for (int i = 0; i < perceptrons.size(); i++) {
+            results[i] = perceptrons.get(i).predict(vector);
+        }
+        int index = 0;
+        for (int i = 0; i < results.length; i++) {
+            if (results[i] == 1) {
+                index = i;
+                break;
+            }
+        }
+
+        return perceptrons.get(index).lang;
+    }
+
+    public double test(TestingSet testingSet) {
+        int correct = 0;
+        int total = testingSet.getTestingVectors().size();
+
+        for (Vector vector : testingSet.getTestingVectors())
+            if (predict(vector).equals(vector.lang)) correct++;
+
+        return ((double) correct / total);
+    }
+
     public static void main(String[] args) {
         TrainingSet trainingSet = new TrainingSet("./src/lang.train.csv");
         SingleLayerNetwork singleLayerNetwork = new SingleLayerNetwork();
-        singleLayerNetwork.train(trainingSet, 1000);
-
-        for (Perceptron perceptron : singleLayerNetwork.perceptrons) System.out.println(Arrays.toString(perceptron.weights));
-        System.out.println();
+        singleLayerNetwork.train(trainingSet, 5);
 
         int eng = 0;
         int pol = 0;
         int ger = 0;
         int esp = 0;
         for (Vector vector : trainingSet.trainingVectors) {
-            for (Perceptron perceptron : singleLayerNetwork.perceptrons) {
-                if (perceptron.predict(vector) >= 0.5) {
-                    if (perceptron.lang.equals("eng")) eng++;
-                    if (perceptron.lang.equals("pol")) eng++;
-                    if (perceptron.lang.equals("ger")) eng++;
-                    if (perceptron.lang.equals("esp")) eng++;
-                }
-            }
+            if (singleLayerNetwork.predict(vector).equals("eng")) eng++;
+            if (singleLayerNetwork.predict(vector).equals("pol")) pol++;
+            if (singleLayerNetwork.predict(vector).equals("ger")) ger++;
+            if (singleLayerNetwork.predict(vector).equals("esp")) esp++;
         }
 
         System.out.println("eng: " + eng);
         System.out.println("pol: " + pol);
         System.out.println("ger: " + ger);
         System.out.println("esp: " + esp);
+
+        TestingSet testingSet = new TestingSet("./src/lang.test.csv");
+        System.out.println(singleLayerNetwork.test(testingSet));
     }
 }
