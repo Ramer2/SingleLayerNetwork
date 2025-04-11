@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class SingleLayerNetwork {
 
@@ -6,7 +7,7 @@ public class SingleLayerNetwork {
 
     public SingleLayerNetwork() {
         perceptrons = new ArrayList<>();
-        double learningRate = Math.random();
+        double learningRate = (Math.random() * 0.1);
 
         for (String lang : new String[]{"eng", "pol", "ger", "esp"}) {
             double[] weights = new double[26];
@@ -55,26 +56,46 @@ public class SingleLayerNetwork {
 
     public static void main(String[] args) {
         TrainingSet trainingSet = new TrainingSet("./src/lang.train.csv");
-        SingleLayerNetwork singleLayerNetwork = new SingleLayerNetwork();
-        singleLayerNetwork.train(trainingSet, 5);
-
-        int eng = 0;
-        int pol = 0;
-        int ger = 0;
-        int esp = 0;
-        for (Vector vector : trainingSet.trainingVectors) {
-            if (singleLayerNetwork.predict(vector).equals("eng")) eng++;
-            if (singleLayerNetwork.predict(vector).equals("pol")) pol++;
-            if (singleLayerNetwork.predict(vector).equals("ger")) ger++;
-            if (singleLayerNetwork.predict(vector).equals("esp")) esp++;
-        }
-
-        System.out.println("eng: " + eng);
-        System.out.println("pol: " + pol);
-        System.out.println("ger: " + ger);
-        System.out.println("esp: " + esp);
-
         TestingSet testingSet = new TestingSet("./src/lang.test.csv");
-        System.out.println(singleLayerNetwork.test(testingSet));
+        Scanner sc = new Scanner(System.in);
+
+        SingleLayerNetwork singleLayerNetwork = new SingleLayerNetwork();
+        singleLayerNetwork.train(trainingSet, 100);
+
+        System.out.println("Hello! Welcome to the best Single Layer Network in the world!!!");
+        System.out.println("The system was already trained. Please, select the next action");
+        while (true) {
+            System.out.println("1. Evaluate the accuracy on a testing set");
+            System.out.println("2. Evaluate the language of the text");
+            System.out.println("3. Exit");
+
+            System.out.print("Enter your choice: ");
+            String input = sc.nextLine();
+            if (input.equals("3")) {
+                System.out.println("Byeeeee!");
+                return;
+            } else if (input.equals("1")) {
+                System.out.println("The accuracy on the testing set: " + singleLayerNetwork.test(testingSet) * 100 + "%");
+            } else if (input.equals("2")) {
+                System.out.print("Please, enter your text: ");
+                String text = sc.nextLine();
+                text = text.toLowerCase().replaceAll("[^a-z]", "");
+
+                double[] components = new double[26];
+                char[] letter = text.toCharArray();
+                for (char c : letter) {
+                    components[c - 'a']++;
+                }
+
+                Vector check = new Vector(components, "none");
+                if (singleLayerNetwork.predict(check).equals("eng")) System.out.println("The language of the given text is English.");
+                else if (singleLayerNetwork.predict(check).equals("pol")) System.out.println("The language of the given text is Polish.");
+                else if (singleLayerNetwork.predict(check).equals("ger")) System.out.println("The language of the given text is German.");
+                else if (singleLayerNetwork.predict(check).equals("esp")) System.out.println("The language of the given text is Spanish.");
+                else System.out.println("The network couldn't figure out the language of the given text... somehow...");
+            } else {
+                System.out.println("Invalid choice, please try again");
+            }
+        }
     }
 }
